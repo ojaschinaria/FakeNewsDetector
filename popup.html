@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>VerifyWizard</title>
+  <style>
+    :root {
+      --popup-width: 450px;
+      --primary-gradient: linear-gradient(135deg, #063466, #1e88e5);
+      --primary-hover: linear-gradient(135deg, #04294f, #1565c0);
+      --bg-gradient: linear-gradient(135deg, #426ba4, #6fa3d8);
+      --text-color: #eaeaea;
+      --card-color: #ffffff;
+      --border-radius: 32px;
+    }
+
+    body {
+      width: var(--popup-width);
+      margin: 0;
+      padding: 20px;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+    }
+
+    .card {
+      background-color: var(--card-color);
+      padding: 28px;
+      min-height: 250px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .lens {
+      width: 42px;
+      height: 42px;
+      border: 3px solid #1e88e5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30, 136, 229, 0.08);
+    }
+
+    .lens span { font-size: 32px; }
+
+    .brand h3 {
+      margin: 0;
+      font-size: 32px;
+      color: #063466;
+      font-weight: 700;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--primary-gradient);
+      color: white;
+      transition: all 0.3s ease;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #loader {
+      display: none;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    #status-text {
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      background-color: #1e88e5;
+      transition: width 0.4s ease;
+    }
+
+    #result {
+      margin-top: 18px;
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .verified { color: green; }
+    .unverified { color: red; }
+
+    #explanation {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #555;
+      max-height: 100px;
+      overflow-y: auto;
+      text-align: left;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="brand">
+      <div class="lens"><span>🧙‍♂️</span></div>
+      <h3>VerifyWizard</h3>
+    </div>
+
+    <button id="analyzeBtn">Verify Facts</button>
+    
+    <div id="loader">
+        <div id="status-text">Initializing...</div>
+        <div class="progress-track">
+            <div id="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="result"></div>
+    <div id="explanation"></div>
+  </div>
+
+  <script src="popup.js"></script>
+
+  <script>
+    const resultEl = document.getElementById("result");
+    const statusText = document.getElementById("status-text");
+    const progressBar = document.getElementById("progress-bar");
+    const loader = document.getElementById("loader");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+
+    const stages = [
+        { text: "Fetching title...", width: "20%" },
+        { text: "Fetching sources...", width: "40%" },
+        { text: "Fetching body...", width: "60%" },
+        { text: "Verifying claims...", width: "80%" },
+        { text: "Almost done...", width: "95%" }
+    ];
+
+    function startLoadingAnimation() {
+        loader.style.display = 'block';
+        resultEl.textContent = ""; 
+        let stageIdx = 0;
+        
+        const interval = setInterval(() => {
+            if (stageIdx < stages.length) {
+                statusText.innerText = stages[stageIdx].text;
+                progressBar.style.width = stages[stageIdx].width;
+                stageIdx++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 1000); 
+
+        return interval;
+    }
+
+    const observer = new MutationObserver(() => {
+      const text = resultEl.textContent.trim();
+      resultEl.classList.remove("verified", "unverified");
+
+      if (text === "Verified") {
+        loader.style.display = 'none'; 
+        resultEl.classList.add("verified");
+      } else if (text === "Unverified") {
+        loader.style.display = 'none';
+        resultEl.classList.add("unverified");
+      }
+    });
+
+    observer.observe(resultEl, { childList: true });
+
+ 
+    analyzeBtn.addEventListener('click', () => {
+        analyzeBtn.disabled = true;
+        startLoadingAnimation();
+    });
+  </script>
+</body>
+</html>
